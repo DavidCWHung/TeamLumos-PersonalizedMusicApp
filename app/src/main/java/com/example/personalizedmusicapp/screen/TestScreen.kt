@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -129,8 +130,6 @@ fun TestScreen(
             AddVideoDialog(state = state, onEvent = onEvent)
         }
 
-
-
         LazyColumn(
             contentPadding = PaddingValues(16.dp),
             modifier = Modifier.fillMaxSize(),
@@ -148,7 +147,8 @@ fun TestScreen(
                 }
             }
             items(playListItems) { item ->
-                ItemCard(item)
+
+                ItemCard(item, onEvent = onEvent)
                 }
             }
 
@@ -178,7 +178,8 @@ fun TestScreen(
     }
 
 @Composable
-fun ItemCard(item: Item) {
+fun ItemCard(item: Item, onEvent: (VideoEvent) -> Unit) {
+
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -188,6 +189,12 @@ fun ItemCard(item: Item) {
         Text(item.snippet.position)
         Text(item.snippet.resourceId.videoId)
         YoutubePlayer(youtubeVideoId = item.snippet.resourceId.videoId)
-        Icon(Icons.Outlined.Favorite, contentDescription = null)
+        Button(onClick = {
+            onEvent(VideoEvent.SetYoutubeId(item.snippet.resourceId.videoId))
+            onEvent(VideoEvent.SaveVideo)
+        }) {
+            Icon(Icons.Outlined.Favorite, contentDescription = null )
+        }
+
     }
 }
