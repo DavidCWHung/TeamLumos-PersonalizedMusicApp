@@ -14,7 +14,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,6 +44,7 @@ import com.example.personalizedmusicapp.data.Item
 import com.example.personalizedmusicapp.data.PlayListItemsResponse
 import com.example.personalizedmusicapp.model.VideoEvent
 import com.example.personalizedmusicapp.model.VideoState
+import com.example.personalizedmusicapp.room.Video
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.Response
@@ -148,7 +152,7 @@ fun TestScreen(
             }
             items(playListItems) { item ->
 
-                ItemCard(item, onEvent = onEvent)
+                ItemCard(item, state, onEvent = onEvent)
                 }
             }
 
@@ -178,7 +182,14 @@ fun TestScreen(
     }
 
 @Composable
-fun ItemCard(item: Item, onEvent: (VideoEvent) -> Unit) {
+fun ItemCard(item: Item, state: VideoState, onEvent: (VideoEvent) -> Unit) {
+
+    var found = false
+    state.videos.forEach{
+        if (it.youtubeId == item.snippet.resourceId.videoId)
+            found = true
+    }
+
 
     OutlinedCard(
         modifier = Modifier
@@ -189,12 +200,19 @@ fun ItemCard(item: Item, onEvent: (VideoEvent) -> Unit) {
         Text(item.snippet.position)
         Text(item.snippet.resourceId.videoId)
         YoutubePlayer(youtubeVideoId = item.snippet.resourceId.videoId)
-        Button(onClick = {
+        IconButton(onClick = {
             onEvent(VideoEvent.SetYoutubeId(item.snippet.resourceId.videoId))
-            onEvent(VideoEvent.SaveVideo)
+            if (found)
+                onEvent(VideoEvent.DeleteVideoByYoutubeId(item.snippet.resourceId.videoId))
+            else
+                onEvent(VideoEvent.SaveVideo)
         }) {
-            Icon(Icons.Outlined.Favorite, contentDescription = null )
-        }
 
+            if (found)
+                Icon(Icons.Outlined.Favorite, contentDescription = null )
+            else
+                Icon(Icons.Outlined.Add, contentDescription = null )
+
+        }
     }
 }
