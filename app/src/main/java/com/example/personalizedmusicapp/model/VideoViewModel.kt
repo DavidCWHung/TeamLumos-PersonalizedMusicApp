@@ -32,6 +32,12 @@ class VideoViewModel (
                     dao.deleteVideo(event.video)
                 }
             }
+
+            is VideoEvent.DeleteVideoByYoutubeId -> {
+                viewModelScope.launch {
+                    dao.deleteVideoByYoutubeId(event.youtubeId)
+                }
+            }
             VideoEvent.HideDialog -> {
                 _state.update { it.copy(
                     isAddingVideo = false
@@ -60,11 +66,21 @@ class VideoViewModel (
                     youtubeId = event.youtubeId
                 ) }
             }
+
             VideoEvent.ShowDialog -> {
                 _state.update { it.copy(
                     isAddingVideo = true
                 ) }
             }
+
+            /*
+            VideoEvent.Fav -> {
+                _state.update { it.copy(
+                    found = true
+                ) }
+            }
+             */
+
         }
     }
 }

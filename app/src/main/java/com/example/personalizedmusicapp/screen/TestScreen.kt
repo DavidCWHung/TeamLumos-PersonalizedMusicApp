@@ -14,8 +14,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -40,6 +44,7 @@ import com.example.personalizedmusicapp.data.Item
 import com.example.personalizedmusicapp.data.PlayListItemsResponse
 import com.example.personalizedmusicapp.model.VideoEvent
 import com.example.personalizedmusicapp.model.VideoState
+import com.example.personalizedmusicapp.room.Video
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.Response
@@ -129,8 +134,6 @@ fun TestScreen(
             AddVideoDialog(state = state, onEvent = onEvent)
         }
 
-
-
         LazyColumn(
             contentPadding = PaddingValues(16.dp),
             modifier = Modifier.fillMaxSize(),
@@ -148,7 +151,8 @@ fun TestScreen(
                 }
             }
             items(playListItems) { item ->
-                ItemCard(item)
+
+                ItemCard(item, state, onEvent = onEvent)
                 }
             }
 
@@ -178,7 +182,15 @@ fun TestScreen(
     }
 
 @Composable
-fun ItemCard(item: Item) {
+fun ItemCard(item: Item, state: VideoState, onEvent: (VideoEvent) -> Unit) {
+
+    var found = false
+    state.videos.forEach{
+        if (it.youtubeId == item.snippet.resourceId.videoId)
+            found = true
+    }
+
+
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -188,6 +200,19 @@ fun ItemCard(item: Item) {
         Text(item.snippet.position)
         Text(item.snippet.resourceId.videoId)
         YoutubePlayer(youtubeVideoId = item.snippet.resourceId.videoId)
-        Icon(Icons.Outlined.Favorite, contentDescription = null)
+        IconButton(onClick = {
+            onEvent(VideoEvent.SetYoutubeId(item.snippet.resourceId.videoId))
+            if (found)
+                onEvent(VideoEvent.DeleteVideoByYoutubeId(item.snippet.resourceId.videoId))
+            else
+                onEvent(VideoEvent.SaveVideo)
+        }) {
+
+            if (found)
+                Icon(Icons.Outlined.Favorite, contentDescription = null )
+            else
+                Icon(Icons.Outlined.Add, contentDescription = null )
+
+        }
     }
 }
