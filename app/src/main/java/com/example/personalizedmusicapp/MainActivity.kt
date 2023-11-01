@@ -59,6 +59,7 @@ import com.example.personalizedmusicapp.data.Item
 import com.example.personalizedmusicapp.data.PlayListItemsResponse
 import com.example.personalizedmusicapp.model.VideoViewModel
 import com.example.personalizedmusicapp.room.VideoDatabase
+import com.example.personalizedmusicapp.screen.FavouritesScreen
 import com.example.personalizedmusicapp.screen.TestScreen
 import com.example.personalizedmusicapp.ui.theme.PersonalizedMusicAppTheme
 import kotlinx.coroutines.Dispatchers
@@ -182,7 +183,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             composable("home") { HomeScreen() }
                             composable("search") { SearchScreen() }
-                            composable("favourites") { FavouritesScreen() }
+                            composable("favourites") { FavouritesScreen(state=state, onEvent=viewModel::onEvent) }
                             composable("test") { TestScreen(state = state, onEvent=viewModel::onEvent)}
                         }
                     }
@@ -256,7 +257,7 @@ fun SearchScreen() {
         )
     }
 }
-
+/*
 @Composable
 fun FavouritesScreen() {
     Column (
@@ -271,3 +272,4 @@ fun FavouritesScreen() {
         )
     }
 }
+*/
