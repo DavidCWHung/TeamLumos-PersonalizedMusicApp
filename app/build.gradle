@@ -1,11 +1,12 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
 }
 
 android {
     namespace 'com.example.personalizedmusicapp'
-    compileSdk 33
+    compileSdk 34  // FC: 33 -> 34
 
     defaultConfig {
         applicationId "com.example.personalizedmusicapp"
@@ -70,4 +71,8 @@ dependencies {
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
+
+    def room_version = "2.5.0"
+    implementation "androidx.room:room-ktx:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
 }
