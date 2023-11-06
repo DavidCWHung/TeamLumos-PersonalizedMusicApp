@@ -11,9 +11,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class VideoViewModel (
-    private val dao: VideoDao
-): ViewModel() {
+class VideoViewModel (private val dao: VideoDao): ViewModel() {
 
     private val _state = MutableStateFlow(VideoState())
     private val _videos = dao.getVideos()
@@ -38,15 +36,17 @@ class VideoViewModel (
                     dao.deleteVideoByYoutubeId(event.youtubeId)
                 }
             }
+
             VideoEvent.HideDialog -> {
                 _state.update { it.copy(
                     isAddingVideo = false
                 ) }
             }
+
             VideoEvent.SaveVideo -> {
                 val ytVideoId = state.value.youtubeId
 
-                if(ytVideoId.isBlank()) {
+                if (ytVideoId.isBlank()) {
                     return
                 }
 
@@ -61,6 +61,7 @@ class VideoViewModel (
                     youtubeId = ""
                 ) }
             }
+
             is VideoEvent.SetYoutubeId -> {
                 _state.update { it.copy(
                     youtubeId = event.youtubeId
@@ -72,15 +73,6 @@ class VideoViewModel (
                     isAddingVideo = true
                 ) }
             }
-
-            /*
-            VideoEvent.Fav -> {
-                _state.update { it.copy(
-                    found = true
-                ) }
-            }
-             */
-
         }
     }
 }
