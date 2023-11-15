@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.personalizedmusicapp.BuildConfig
 import com.example.personalizedmusicapp.YoutubePlayer
 import com.example.personalizedmusicapp.data.Item
 import com.example.personalizedmusicapp.data.PlayListItemsResponse
@@ -77,7 +78,7 @@ fun HomeScreen(
             val part = "snippet"
             val maxResults = "50"
             val playlistId = "PL9JwhzITbbGZGA5qjHDbVfNQnK5Sc_XWG"
-            val key = "AIzaSyBKxF26cbuvhSHdc0otnKePjQMi4MLp5GQ"
+            val key = BuildConfig.API_KEY
 
             val response = apiService.getPlaylistItems(part, maxResults, playlistId, key)
 
