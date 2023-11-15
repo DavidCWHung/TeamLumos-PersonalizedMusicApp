@@ -61,21 +61,6 @@ interface ApiService {
     ): Response<PlayListItemsResponse>
 }
 
-//@Composable
-//fun ItemCard(item: Item) {
-//    OutlinedCard(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(5.dp)
-//    ) {
-//        Text(item.snippet.title)
-//        Text(item.snippet.position)
-//        Text(item.snippet.resourceId.videoId)
-//
-//        YoutubePlayer(youtubeVideoId = item.snippet.resourceId.videoId)
-//    }
-//}
-
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
 
