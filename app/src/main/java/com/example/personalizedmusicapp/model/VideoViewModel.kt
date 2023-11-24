@@ -21,7 +21,7 @@ class VideoViewModel (private val dao: VideoDao): ViewModel() {
         state.copy(
             videos= videos
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), VideoState())
+    }.stateIn(  viewModelScope, SharingStarted.WhileSubscribed(5000), VideoState())
 
     fun onEvent(event: VideoEvent) {
         when(event) {
