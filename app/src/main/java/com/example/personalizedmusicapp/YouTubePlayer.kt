@@ -1,5 +1,6 @@
 package com.example.personalizedmusicapp
 
+import android.content.Context
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,22 +17,8 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.Abs
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 
 @Composable
-fun YoutubePlayer(
-    youtubeVideoId: String
-) {
-    val context = LocalContext.current
-    val youTubePlayerView = remember {
-        YouTubePlayerView(context).apply {
-
-            addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
-                override fun onReady(youTubePlayer: YouTubePlayer) {
-                    youTubePlayer.loadVideo(youtubeVideoId, 0f)
-                }
-            })
-
-            enableBackgroundPlayback(true)
-        }
-    }
+fun YoutubePlayer(youtubeVideoId: String) {
+    val youTubePlayerView = rememberYoutubePlayerView(youtubeVideoId)
 
     DisposableEffect(Unit) {
         onDispose {
@@ -48,3 +35,26 @@ fun YoutubePlayer(
     )
 }
 
+@Composable
+private fun rememberYoutubePlayerView(youtubeVideoId: String): YouTubePlayerView {
+    val context = LocalContext.current
+    return remember {
+        createYoutubePlayerView(context, youtubeVideoId)
+    }
+}
+
+private fun createYoutubePlayerView(context: Context, youtubeVideoId: String): YouTubePlayerView {
+    val youTubePlayerView = YouTubePlayerView(context).apply {
+        addYouTubePlayerListener(createYoutubePlayerListener(youtubeVideoId))
+        enableBackgroundPlayback(true)
+    }
+    return youTubePlayerView
+}
+
+private fun createYoutubePlayerListener(youtubeVideoId: String): AbstractYouTubePlayerListener {
+    return object : AbstractYouTubePlayerListener() {
+        override fun onReady(youTubePlayer: YouTubePlayer) {
+            youTubePlayer.loadVideo(youtubeVideoId, 0f)
+        }
+    }
+}
