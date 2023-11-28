@@ -8,8 +8,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.example.personalizedmusicapp.data.Item
 import com.example.personalizedmusicapp.model.VideoEvent
 import com.example.personalizedmusicapp.model.VideoState
 
@@ -21,14 +26,17 @@ fun AddVideoDialog(
     modifier: Modifier = Modifier
 )
 {
+    var youtubeId by remember { mutableStateOf("") }
+
     AlertDialog(
         modifier = modifier,
         onDismissRequest = { onEvent(VideoEvent.HideDialog) },
         title = { Text(text = "Add Video") },
         text = {
             TextField(
-                value = state.youtubeId,
+                value = youtubeId,
                 onValueChange = {
+                    youtubeId = it
                     onEvent(VideoEvent.SetYoutubeId(it))
                 },
                 placeholder = {
