@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 
 class VideoViewModel (private val dao: VideoDao): ViewModel() {
 
+
     private val _state = MutableStateFlow(VideoState())
     private val _videos = dao.getVideos()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
@@ -21,7 +22,7 @@ class VideoViewModel (private val dao: VideoDao): ViewModel() {
         state.copy(
             videos= videos
         )
-    }.stateIn(  viewModelScope, SharingStarted.WhileSubscribed(5000), VideoState())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), VideoState())
 
     fun onEvent(event: VideoEvent) {
         when(event) {
@@ -37,21 +38,25 @@ class VideoViewModel (private val dao: VideoDao): ViewModel() {
                 }
             }
 
-            VideoEvent.HideDialog -> {
+            is VideoEvent.HideDialog -> {
                 _state.update { it.copy(
                     isAddingVideo = false
                 ) }
             }
 
-            VideoEvent.SaveVideo -> {
-                val ytVideoId = state.value.youtubeId
+            is VideoEvent.SaveVideo -> {
+                val youtubeId = state.value.youtubeId
+                val title = state.value.title
+                val duration = state.value.duration
 
-                if (ytVideoId.isBlank()) {
+                if (youtubeId.isBlank()) {
                     return
                 }
 
                 val video = Video(
-                    youtubeId = ytVideoId
+                    youtubeId = youtubeId,
+                    title = title,
+                    duration = duration
                 )
                 viewModelScope.launch {
                     dao.upsertVideo(video)
@@ -62,13 +67,15 @@ class VideoViewModel (private val dao: VideoDao): ViewModel() {
                 ) }
             }
 
-            is VideoEvent.SetYoutubeId -> {
+            is VideoEvent.SetVideo -> {
                 _state.update { it.copy(
-                    youtubeId = event.youtubeId
+                    youtubeId = event.youtubeId,
+                    title = event.title,
+                    duration = event.duration
                 ) }
             }
 
-            VideoEvent.ShowDialog -> {
+            is VideoEvent.ShowDialog -> {
                 _state.update { it.copy(
                     isAddingVideo = true
                 ) }

@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.personalizedmusicapp.BuildConfig
 import com.example.personalizedmusicapp.YoutubePlayer
+import com.example.personalizedmusicapp.data.ContentDetails
 import com.example.personalizedmusicapp.data.Item
 import com.example.personalizedmusicapp.data.PlayListItemsResponse
 import com.example.personalizedmusicapp.model.VideoEvent
@@ -55,6 +56,13 @@ interface ApiService {
         @Query("playlistId") playlistId: String,
         @Query("key") key: String
     ): Response<PlayListItemsResponse>
+
+    @GET("videos")
+    suspend fun getVideos(
+        @Query("id") id: String,
+        @Query("part") part: String,
+        @Query("key") key: String
+    ): Response<PlayListItemsResponse>
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,6 +72,9 @@ fun HomeScreen(
     onEvent: (VideoEvent) -> Unit){
 
     var playListItems by remember { mutableStateOf(emptyList<Item>()) }
+    var _playListItems by remember { mutableStateOf(emptyList<Item>()) }
+    var contentDetailsList by remember { mutableStateOf(emptyList<ContentDetails>()) }
+
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(key1 = Unit) {
@@ -87,53 +98,88 @@ fun HomeScreen(
                 if (responseBody != null) {
                     playListItems = responseBody.items
                 }
-                Log.d("MyApp", "Success")
+                Log.d("MyApp", "Fetched PlaylistItems successfully.")
+
+                playListItems.forEach{
+                    val part = "contentDetails"
+                    val key = BuildConfig.API_KEY
+                    val id = it.snippet.resourceId.videoId
+                    val response = apiService.getVideos(id, part, key)
+                    var contentDetails = ContentDetails(id, "00:05") // Default values
+                    if (response.isSuccessful) {
+                        val responseBody = response.body()
+                        if (responseBody != null) {
+                            _playListItems = responseBody.items
+
+                            if (!_playListItems.isEmpty()){
+                                val durationStr = _playListItems[0].contentDetails.duration
+                                var duration: String = "00:05"
+                                if (durationStr.length == 7)
+                                    duration = "0" + durationStr.substring(2,3) + ":" + durationStr.substring(4,6)
+                                else if (durationStr.length == 8)
+                                    duration = durationStr.substring(2,4) + ":" + durationStr.substring(5,7)
+                                contentDetails = ContentDetails(
+                                    duration = duration,
+                                    videoId = id
+                                )
+                            }
+                        }
+                    }
+                    contentDetailsList += contentDetails
+                    Log.d("MyApp", "Fetched ContentDetails successfully.")
+                }
             } else {
                 // Handle API error here
-                Log.d("MyApp", "Failed to retrieve!")
+                Log.d("MyApp", "Failed to retrieve PlaylistItem!")
             }
         }
     }
-        LazyColumn(
-            contentPadding = PaddingValues(16.dp),
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        )
-        {
-            items(playListItems) { item ->
-                ItemCard(item, state, onEvent = onEvent)
+    LazyColumn(
+        contentPadding = PaddingValues(16.dp),
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    )
+    {
+        var duration = ""
+        items(playListItems) { item ->
+            contentDetailsList.forEach {
+                if (it.videoId == item.snippet.resourceId.videoId)
+                    duration = it.duration
             }
-            item { Row(modifier = Modifier.height(120.dp)){} }
+            ItemCard(item, duration, state, onEvent = onEvent)
         }
+
+        item { Row(modifier = Modifier.height(120.dp)){} }
     }
+}
 
 fun showToastMessage(context: Context, message: String){
     Toast.makeText(context,message, Toast.LENGTH_SHORT).show()
 }
 
 @Composable
-fun ItemCard(item: Item, state: VideoState, onEvent: (VideoEvent) -> Unit) {
+fun ItemCard(item: Item, duration: String, state: VideoState, onEvent: (VideoEvent) -> Unit) {
 
     var isFound = false
     state.videos.forEach{
         if (it.youtubeId == item.snippet.resourceId.videoId)
             isFound = true
     }
-
     OutlinedCard(
-        modifier = Modifier.fillMaxWidth().padding(5.dp)){
+    ){
         Column(modifier = Modifier.padding(5.dp)){
             Row (modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically){
-                Text(item.snippet.title)
+                Text(" ${item.snippet.position} - ${duration} ${item.snippet.title}")
                 Row (modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End){
                     IconButton(onClick = {
-                        onEvent(VideoEvent.SetYoutubeId(item.snippet.resourceId.videoId))
                         if (isFound)
                             onEvent(VideoEvent.DeleteVideoByYoutubeId(item.snippet.resourceId.videoId))
-                        else
+                        else {
+                            onEvent(VideoEvent.SetVideo(item.snippet.resourceId.videoId, item.snippet.title, duration))
                             onEvent(VideoEvent.SaveVideo)
+                        }
                     }) {
                         if (isFound)
                             Icon(Icons.Filled.Favorite, contentDescription = null, tint = Color.Red)
@@ -142,8 +188,6 @@ fun ItemCard(item: Item, state: VideoState, onEvent: (VideoEvent) -> Unit) {
                     }
                 }
             }
-            Text(item.snippet.position)
-            Text(item.snippet.resourceId.videoId)
             YoutubePlayer(youtubeVideoId = item.snippet.resourceId.videoId)
         }
     }

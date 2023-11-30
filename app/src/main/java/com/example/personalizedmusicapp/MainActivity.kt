@@ -1,10 +1,12 @@
 package com.example.personalizedmusicapp
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,9 +14,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -46,6 +50,7 @@ import com.example.personalizedmusicapp.model.VideoViewModel
 import com.example.personalizedmusicapp.room.VideoDatabase
 import com.example.personalizedmusicapp.screen.FavouritesScreen
 import com.example.personalizedmusicapp.screen.HomeScreen
+import com.example.personalizedmusicapp.screen.PlayerScreen
 import com.example.personalizedmusicapp.ui.theme.PersonalizedMusicAppTheme
 import retrofit2.Response
 import retrofit2.http.GET
@@ -81,6 +86,7 @@ class MainActivity : ComponentActivity() {
         }
     )
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -106,6 +112,7 @@ class MainActivity : ComponentActivity() {
                             composable("home") { HomeScreen(state = state, onEvent=viewModel::onEvent)}
                             composable("search") { SearchScreen() }
                             composable("favourites") { FavouritesScreen(state=state, onEvent=viewModel::onEvent) }
+                            composable("player") { PlayerScreen(state=state, onEvent=viewModel::onEvent) }
                         }
                     }
                 }
@@ -127,6 +134,7 @@ fun BottomNavigationBar(navController: NavController) {
         BottomNavItem("Home", Icons.Filled.Home, Icons.Outlined.Home, "home"),
         BottomNavItem("Search", Icons.Filled.Search, Icons.Outlined.Search, "search"),
         BottomNavItem("Favourites", Icons.Filled.Favorite, Icons.Outlined.FavoriteBorder, "favourites"),
+        BottomNavItem("Player", Icons.Filled.PlayArrow, Icons.Outlined.PlayArrow, "player")
     )
 
     NavigationBar(
