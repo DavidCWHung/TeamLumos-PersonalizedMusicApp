@@ -26,18 +26,15 @@ fun AddVideoDialog(
     modifier: Modifier = Modifier
 )
 {
-    var youtubeId by remember { mutableStateOf("") }
-
     AlertDialog(
         modifier = modifier,
         onDismissRequest = { onEvent(VideoEvent.HideDialog) },
         title = { Text(text = "Add Video") },
         text = {
             TextField(
-                value = youtubeId,
+                value = state.youtubeId,
                 onValueChange = {
-                    youtubeId = it
-                    onEvent(VideoEvent.SetYoutubeId(it))
+                    onEvent(VideoEvent.SetVideo(it, "", "04:00"))
                 },
                 placeholder = {
                     Text(text = "Youtube ID")

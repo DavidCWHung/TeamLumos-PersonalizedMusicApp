@@ -10,5 +10,7 @@ data class Video(
     @ColumnInfo(name="video_id")
     val videoId: Int = 0,
     @ColumnInfo(name="youtube_id")
-    val youtubeId: String = ""
+    val youtubeId: String = "",
+    val title: String = "",
+    val duration: String = ""
 )
