@@ -7,19 +7,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,12 +27,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
@@ -110,7 +103,6 @@ class MainActivity : ComponentActivity() {
                             startDestination = "home"
                         ) {
                             composable("home") { HomeScreen(state = state, onEvent=viewModel::onEvent)}
-                            composable("search") { SearchScreen() }
                             composable("favourites") { FavouritesScreen(state=state, onEvent=viewModel::onEvent) }
                             composable("player") { PlayerScreen(state=state, onEvent=viewModel::onEvent) }
                         }
@@ -132,7 +124,6 @@ data class BottomNavItem(
 fun BottomNavigationBar(navController: NavController) {
     val items = listOf(
         BottomNavItem("Home", Icons.Filled.Home, Icons.Outlined.Home, "home"),
-        BottomNavItem("Search", Icons.Filled.Search, Icons.Outlined.Search, "search"),
         BottomNavItem("Favourites", Icons.Filled.Favorite, Icons.Outlined.FavoriteBorder, "favourites"),
         BottomNavItem("Player", Icons.Filled.PlayArrow, Icons.Outlined.PlayArrow, "player")
     )
@@ -171,17 +162,3 @@ fun BottomNavigationBar(navController: NavController) {
     }
 }
 
-@Composable
-fun SearchScreen() {
-    Column (
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Search Screen",
-            fontWeight = FontWeight.ExtraBold,
-            fontSize = 34.sp
-        )
-    }
-}
