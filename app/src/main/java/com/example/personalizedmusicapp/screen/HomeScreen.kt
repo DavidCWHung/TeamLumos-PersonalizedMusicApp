@@ -196,7 +196,7 @@ fun ItemCard(item: Item, duration: String, state: VideoState, onEvent: (VideoEve
     }
     OutlinedCard(
     ){
-        Column(modifier = Modifier.padding(10.dp)){
+        Column(modifier = Modifier.padding(5.dp)){
             Row (modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically){
 

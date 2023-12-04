@@ -91,17 +91,21 @@ fun FavItemCard(youtubeId: String, title: String, onEvent: (VideoEvent) -> Unit)
     ) {
         Row(modifier = Modifier.fillMaxWidth().padding(5.dp),
             verticalAlignment = Alignment.CenterVertically){
-            Text(title)
-            Row(modifier= Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End) {
-                IconButton(onClick = {
-                    onEvent(VideoEvent.DeleteVideoByYoutubeId(youtubeId))
-                }) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete video"
-                    )
-                }
+            Row(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            )
+            {
+                Text(title)
+            }
+            IconButton(onClick = {
+                onEvent(VideoEvent.DeleteVideoByYoutubeId(youtubeId))
+            }) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete video"
+                )
             }
         }
         YoutubePlayer(youtubeVideoId = youtubeId)
