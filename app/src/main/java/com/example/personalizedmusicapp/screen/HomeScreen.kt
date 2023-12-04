@@ -17,11 +17,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -77,79 +79,106 @@ fun HomeScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(key1 = Unit) {
-        coroutineScope.launch(Dispatchers.IO) {
-            val retrofit = Retrofit.Builder()
-                .baseUrl("https://www.googleapis.com/youtube/v3/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
+    var playlistIdText by remember { mutableStateOf("PL9JwhzITbbGZGA5qjHDbVfNQnK5Sc_XWG") }
 
-            val apiService = retrofit.create(ApiService::class.java)
-
-            val part = "snippet"
-            val maxResults = "50"
-            val playlistId = "PL9JwhzITbbGZGA5qjHDbVfNQnK5Sc_XWG"
-            val key = BuildConfig.API_KEY
-
-            val response = apiService.getPlaylistItems(part, maxResults, playlistId, key)
-
-            if (response.isSuccessful) {
-                val responseBody = response.body()
-                if (responseBody != null) {
-                    playListItems = responseBody.items
-                }
-                Log.d("MyApp", "Fetched PlaylistItems successfully.")
-
-                playListItems.forEach{
-                    val part = "contentDetails"
-                    val key = BuildConfig.API_KEY
-                    val id = it.snippet.resourceId.videoId
-                    val response = apiService.getVideos(id, part, key)
-                    var contentDetails = ContentDetails(id, "00:05") // Default values
-                    if (response.isSuccessful) {
-                        val responseBody = response.body()
-                        if (responseBody != null) {
-                            _playListItems = responseBody.items
-
-                            if (!_playListItems.isEmpty()){
-                                val durationStr = _playListItems[0].contentDetails.duration
-                                var duration: String = "00:05"
-                                if (durationStr.length == 7)
-                                    duration = "0" + durationStr.substring(2,3) + ":" + durationStr.substring(4,6)
-                                else if (durationStr.length == 8)
-                                    duration = durationStr.substring(2,4) + ":" + durationStr.substring(5,7)
-                                contentDetails = ContentDetails(
-                                    duration = duration,
-                                    videoId = id
-                                )
-                            }
-                        }
-                    }
-                    contentDetailsList += contentDetails
-                    Log.d("MyApp", "Fetched ContentDetails successfully.")
-                }
-            } else {
-                // Handle API error here
-                Log.d("MyApp", "Failed to retrieve PlaylistItem!")
-            }
-        }
-    }
-    LazyColumn(
-        contentPadding = PaddingValues(16.dp),
+    Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     )
     {
-        var duration = ""
-        items(playListItems) { item ->
-            contentDetailsList.forEach {
-                if (it.videoId == item.snippet.resourceId.videoId)
-                    duration = it.duration
-            }
-            ItemCard(item, duration, state, onEvent = onEvent)
+        TextField(
+            value = playlistIdText,
+            onValueChange = { playlistIdText = it },
+            label = { Text("Enter YouTube Playlist ID") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        )
+
+        Button(
+            onClick = {
+                val retrofit = Retrofit.Builder()
+                    .baseUrl("https://www.googleapis.com/youtube/v3/")
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build()
+
+                val apiService = retrofit.create(ApiService::class.java)
+
+                val part = "snippet"
+                val maxResults = "50"
+                val key = BuildConfig.API_KEY
+
+                // Use the updated playlistIdText value for API call
+                val playlistId = playlistIdText
+
+                coroutineScope.launch(Dispatchers.IO) {
+                    val response = apiService.getPlaylistItems(part, maxResults, playlistId, key)
+
+                    if (response.isSuccessful) {
+                        val responseBody = response.body()
+                        if (responseBody != null) {
+                            playListItems = responseBody.items
+                        }
+                        Log.d("MyApp", "Fetched PlaylistItems successfully.")
+
+                        playListItems.forEach{
+                            val part = "contentDetails"
+                            val key = BuildConfig.API_KEY
+                            val id = it.snippet.resourceId.videoId
+                            val response = apiService.getVideos(id, part, key)
+                            var contentDetails = ContentDetails(id, "00:05") // Default values
+                            if (response.isSuccessful) {
+                                val responseBody = response.body()
+                                if (responseBody != null) {
+                                    _playListItems = responseBody.items
+
+                                    if (!_playListItems.isEmpty()){
+                                        val durationStr = _playListItems[0].contentDetails.duration
+                                        var duration: String = "00:05"
+                                        if (durationStr.length == 7)
+                                            duration = "0" + durationStr.substring(2,3) + ":" + durationStr.substring(4,6)
+                                        else if (durationStr.length == 8)
+                                            duration = durationStr.substring(2,4) + ":" + durationStr.substring(5,7)
+                                        contentDetails = ContentDetails(
+                                            duration = duration,
+                                            videoId = id
+                                        )
+                                    }
+                                }
+                            }
+                            contentDetailsList += contentDetails
+                            Log.d("MyApp", "Fetched ContentDetails successfully.")
+                        }
+                    } else {
+                        // Handle API error here
+                        Log.d("MyApp", "Failed to retrieve PlaylistItem!")
+                    }
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text("Fetch Playlist")
         }
 
-        item { Row(modifier = Modifier.height(120.dp)){} }
+        LazyColumn(
+            contentPadding = PaddingValues(16.dp),
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        )
+        {
+            var duration = ""
+            items(playListItems) { item ->
+                contentDetailsList.forEach {
+                    if (it.videoId == item.snippet.resourceId.videoId)
+                        duration = it.duration
+                }
+                ItemCard(item, duration, state, onEvent = onEvent)
+            }
+
+            item { Row(modifier = Modifier.height(120.dp)){} }
+        }
     }
 }
 
@@ -167,12 +196,18 @@ fun ItemCard(item: Item, duration: String, state: VideoState, onEvent: (VideoEve
     }
     OutlinedCard(
     ){
-        Column(modifier = Modifier.padding(5.dp)){
+        Column(modifier = Modifier.padding(10.dp)){
             Row (modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically){
-                Text(" ${item.snippet.position} - ${duration} ${item.snippet.title}")
-                Row (modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End){
+
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                )
+                {
+                    Text(" ${item.snippet.position} - ${duration} ${item.snippet.title}")
+                }
                     IconButton(onClick = {
                         if (isFound)
                             onEvent(VideoEvent.DeleteVideoByYoutubeId(item.snippet.resourceId.videoId))
@@ -186,7 +221,6 @@ fun ItemCard(item: Item, duration: String, state: VideoState, onEvent: (VideoEve
                         else
                             Icon(Icons.Outlined.FavoriteBorder, contentDescription = null, tint = Color.Red)
                     }
-                }
             }
             YoutubePlayer(youtubeVideoId = item.snippet.resourceId.videoId)
         }
