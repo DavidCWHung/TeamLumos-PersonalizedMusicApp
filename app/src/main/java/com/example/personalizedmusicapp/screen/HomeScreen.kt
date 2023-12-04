@@ -1,9 +1,6 @@
-
 package com.example.personalizedmusicapp.screen
 
-import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,6 +24,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -71,19 +69,20 @@ interface ApiService {
 @Composable
 fun HomeScreen(
     state: VideoState,
-    onEvent: (VideoEvent) -> Unit){
+    onEvent: (VideoEvent) -> Unit
+) {
 
     var playListItems by remember { mutableStateOf(emptyList<Item>()) }
     var _playListItems by remember { mutableStateOf(emptyList<Item>()) }
     var contentDetailsList by remember { mutableStateOf(emptyList<ContentDetails>()) }
-
+    var playlistIdText by remember { mutableStateOf("") }
+    // Key to trigger recomposition
+    var apiCallKey by remember { mutableStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
-
-    var playlistIdText by remember { mutableStateOf("PL9JwhzITbbGZGA5qjHDbVfNQnK5Sc_XWG") }
 
     Column(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(5.dp)
     )
     {
         TextField(
@@ -97,69 +96,84 @@ fun HomeScreen(
 
         Button(
             onClick = {
-                val retrofit = Retrofit.Builder()
-                    .baseUrl("https://www.googleapis.com/youtube/v3/")
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build()
-
-                val apiService = retrofit.create(ApiService::class.java)
-
-                val part = "snippet"
-                val maxResults = "50"
-                val key = BuildConfig.API_KEY
-
-                // Use the updated playlistIdText value for API call
-                val playlistId = playlistIdText
-
-                coroutineScope.launch(Dispatchers.IO) {
-                    val response = apiService.getPlaylistItems(part, maxResults, playlistId, key)
-
-                    if (response.isSuccessful) {
-                        val responseBody = response.body()
-                        if (responseBody != null) {
-                            playListItems = responseBody.items
-                        }
-                        Log.d("MyApp", "Fetched PlaylistItems successfully.")
-
-                        playListItems.forEach{
-                            val part = "contentDetails"
-                            val key = BuildConfig.API_KEY
-                            val id = it.snippet.resourceId.videoId
-                            val response = apiService.getVideos(id, part, key)
-                            var contentDetails = ContentDetails(id, "00:05") // Default values
-                            if (response.isSuccessful) {
-                                val responseBody = response.body()
-                                if (responseBody != null) {
-                                    _playListItems = responseBody.items
-
-                                    if (!_playListItems.isEmpty()){
-                                        val durationStr = _playListItems[0].contentDetails.duration
-                                        var duration: String = "00:05"
-                                        if (durationStr.length == 7)
-                                            duration = "0" + durationStr.substring(2,3) + ":" + durationStr.substring(4,6)
-                                        else if (durationStr.length == 8)
-                                            duration = durationStr.substring(2,4) + ":" + durationStr.substring(5,7)
-                                        contentDetails = ContentDetails(
-                                            duration = duration,
-                                            videoId = id
-                                        )
-                                    }
-                                }
-                            }
-                            contentDetailsList += contentDetails
-                            Log.d("MyApp", "Fetched ContentDetails successfully.")
-                        }
-                    } else {
-                        // Handle API error here
-                        Log.d("MyApp", "Failed to retrieve PlaylistItem!")
-                    }
-                }
+                // Increment the key to trigger recomposition
+                apiCallKey++
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
             Text("Fetch Playlist")
+        }
+
+        LaunchedEffect(apiCallKey) {
+            val retrofit = Retrofit.Builder()
+                .baseUrl("https://www.googleapis.com/youtube/v3/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+
+            val apiService = retrofit.create(ApiService::class.java)
+
+            val part = "snippet"
+            val maxResults = "50"
+            val key = BuildConfig.API_KEY
+
+            // Use the updated playlistIdText value for API call
+            val playlistId = playlistIdText
+
+            coroutineScope.launch(Dispatchers.IO) {
+                val response = apiService.getPlaylistItems(part, maxResults, playlistId, key)
+
+                if (response.isSuccessful) {
+                    val responseBody = response.body()
+                    if (responseBody != null) {
+                        playListItems = responseBody.items
+                    }
+                    Log.d("MyApp", "Fetched PlaylistItems successfully.")
+
+                    playListItems.forEach {
+                        val part = "contentDetails"
+                        val key = BuildConfig.API_KEY
+                        val id = it.snippet.resourceId.videoId
+                        val response = apiService.getVideos(id, part, key)
+                        var contentDetails = ContentDetails(id, "00:05") // Default values
+                        if (response.isSuccessful) {
+                            val responseBody = response.body()
+                            if (responseBody != null) {
+                                _playListItems = responseBody.items
+
+                                if (!_playListItems.isEmpty()) {
+                                    val durationStr = _playListItems[0].contentDetails.duration
+                                    var duration: String = "00:05"
+                                    if (durationStr.length == 7)
+                                        duration = "0" + durationStr.substring(
+                                            2,
+                                            3
+                                        ) + ":" + durationStr.substring(4, 6)
+                                    else if (durationStr.length == 8)
+                                        duration =
+                                            durationStr.substring(
+                                                2,
+                                                4
+                                            ) + ":" + durationStr.substring(
+                                                5,
+                                                7
+                                            )
+                                    contentDetails = ContentDetails(
+                                        duration = duration,
+                                        videoId = id
+                                    )
+                                }
+                            }
+                        }
+                        contentDetailsList += contentDetails
+                        Log.d("MyApp", "Fetched ContentDetails successfully.")
+                    }
+                } else {
+                    // Handle API error here
+                    Log.d("MyApp", "Failed to retrieve PlaylistItem!")
+                }
+            }
         }
 
         LazyColumn(
@@ -177,28 +191,31 @@ fun HomeScreen(
                 ItemCard(item, duration, state, onEvent = onEvent)
             }
 
-            item { Row(modifier = Modifier.height(120.dp)){} }
+            item { Row(modifier = Modifier.height(120.dp)) {} }
         }
     }
 }
 
-fun showToastMessage(context: Context, message: String){
-    Toast.makeText(context,message, Toast.LENGTH_SHORT).show()
-}
-
 @Composable
-fun ItemCard(item: Item, duration: String, state: VideoState, onEvent: (VideoEvent) -> Unit) {
+fun ItemCard(
+    item: Item,
+    duration: String,
+    state: VideoState,
+    onEvent: (VideoEvent) -> Unit
+) {
 
     var isFound = false
-    state.videos.forEach{
+    state.videos.forEach {
         if (it.youtubeId == item.snippet.resourceId.videoId)
             isFound = true
     }
     OutlinedCard(
-    ){
-        Column(modifier = Modifier.padding(5.dp)){
-            Row (modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically){
+    ) {
+        Column(modifier = Modifier.padding(5.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
 
                 Row(
                     modifier = Modifier.weight(1f),
@@ -208,21 +225,33 @@ fun ItemCard(item: Item, duration: String, state: VideoState, onEvent: (VideoEve
                 {
                     Text(" ${item.snippet.position} - ${duration} ${item.snippet.title}")
                 }
-                    IconButton(onClick = {
-                        if (isFound)
-                            onEvent(VideoEvent.DeleteVideoByYoutubeId(item.snippet.resourceId.videoId))
-                        else {
-                            onEvent(VideoEvent.SetVideo(item.snippet.resourceId.videoId, item.snippet.title, duration))
-                            onEvent(VideoEvent.SaveVideo)
-                        }
-                    }) {
-                        if (isFound)
-                            Icon(Icons.Filled.Favorite, contentDescription = null, tint = Color.Red)
-                        else
-                            Icon(Icons.Outlined.FavoriteBorder, contentDescription = null, tint = Color.Red)
+                IconButton(onClick = {
+                    if (isFound)
+                        onEvent(VideoEvent.DeleteVideoByYoutubeId(item.snippet.resourceId.videoId))
+                    else {
+                        onEvent(
+                            VideoEvent.SetVideo(
+                                item.snippet.resourceId.videoId,
+                                item.snippet.title,
+                                duration
+                            )
+                        )
+                        onEvent(VideoEvent.SaveVideo)
                     }
+                }) {
+                    if (isFound)
+                        Icon(Icons.Filled.Favorite, contentDescription = null, tint = Color.Red)
+                    else
+                        Icon(
+                            Icons.Outlined.FavoriteBorder,
+                            contentDescription = null,
+                            tint = Color.Red
+                        )
+                }
             }
-            YoutubePlayer(youtubeVideoId = item.snippet.resourceId.videoId)
+            key(item.snippet.resourceId.videoId) {
+                YoutubePlayer(youtubeVideoId = item.snippet.resourceId.videoId)
+            }
         }
     }
 }
