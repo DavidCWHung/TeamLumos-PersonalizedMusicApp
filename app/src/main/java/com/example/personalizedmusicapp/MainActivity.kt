@@ -88,17 +88,9 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
+
                     val state by viewModel.state.collectAsState()
 
-                    LaunchedEffect(viewModel) {
-                        viewModel.getPlaylistItems("PL9JwhzITbbGZGA5qjHDbVfNQnK5Sc_XWG")
-                        Log.d("MyApp", "ST")
-
-                        state.playlistItems.forEach {
-                            viewModel.getContentDetailsList(it.snippet.resourceId.videoId)
-                            Log.d("MyApp", "ST")
-                        }
-                    }
                     Scaffold(
                         bottomBar = {
                             BottomNavigationBar(navController = navController)

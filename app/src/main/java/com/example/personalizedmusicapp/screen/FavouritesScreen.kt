@@ -71,7 +71,7 @@ fun FavouritesScreen(
             items(state.videos) { video ->
                 key(video.youtubeId)
                 {
-                    FavItemCard(youtubeId = video.youtubeId, title = video.title, onEvent = onEvent)
+                    FavItemCard(youtubeId = video.youtubeId, title = video.title, duration = video.duration,  onEvent = onEvent)
                 }
             }
             item { Row(modifier = Modifier.height(120.dp)){} }
@@ -80,7 +80,7 @@ fun FavouritesScreen(
 }
 
 @Composable
-fun FavItemCard(youtubeId: String, title: String, onEvent: (VideoEvent) -> Unit) {
+fun FavItemCard(youtubeId: String, title: String, duration: String, onEvent: (VideoEvent) -> Unit) {
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -94,7 +94,7 @@ fun FavItemCard(youtubeId: String, title: String, onEvent: (VideoEvent) -> Unit)
                 verticalAlignment = Alignment.CenterVertically
             )
             {
-                Text(title)
+                Text("$title - $duration")
             }
             IconButton(onClick = {
                 onEvent(VideoEvent.DeleteVideoByYoutubeId(youtubeId))

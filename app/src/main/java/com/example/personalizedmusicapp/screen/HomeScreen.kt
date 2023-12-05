@@ -1,6 +1,5 @@
 package com.example.personalizedmusicapp.screen
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,28 +21,19 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.personalizedmusicapp.BuildConfig
 import com.example.personalizedmusicapp.YoutubePlayer
-import com.example.personalizedmusicapp.data.ContentDetails
 import com.example.personalizedmusicapp.data.Item
 import com.example.personalizedmusicapp.viewModel.VideoEvent
 import com.example.personalizedmusicapp.viewModel.VideoState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,12 +41,7 @@ fun HomeScreen(
     state: VideoState,
     onEvent: (VideoEvent) -> Unit
 ) {
-
-
-    var playlistIdText by remember { mutableStateOf("") }
-    // Key to trigger recomposition
-    var apiCallKey by remember { mutableStateOf(0) }
-
+    var playlistIdText by remember { mutableStateOf(state.playlistIdText) }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -65,85 +50,65 @@ fun HomeScreen(
     {
         TextField(
             value = playlistIdText,
-            onValueChange = { playlistIdText = it },
+            onValueChange = {
+                playlistIdText = it
+                onEvent(VideoEvent.SetPlaylistIdText(it)) },
             label = { Text("Enter YouTube Playlist ID") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         )
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(5.dp)
+        ){
+            Button(
+                onClick = {
+                    // Increment the key to trigger recomposition
+                    // apiCallKey++
+                    onEvent(VideoEvent.UpdatePlaylistItems(playlistIdText))
+                },
+                modifier = Modifier
+                    .padding(5.dp)
+            ) {
+                Text("Fetch Playlist")
+            }
 
-        Button(
-            onClick = {
-                // Increment the key to trigger recomposition
-                apiCallKey++
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text("Fetch Playlist")
-        }
+            Button(
+                onClick = {
+                    // Increment the key to trigger recomposition
+                    // apiCallKey++
+                    onEvent(VideoEvent.SetPlaylistIdText("PL9JwhzITbbGZGA5qjHDbVfNQnK5Sc_XWG"))
+                    playlistIdText = "PL9JwhzITbbGZGA5qjHDbVfNQnK5Sc_XWG"
+                },
+                modifier = Modifier
+                    .padding(5.dp)
+            ) {
+                Text("Default ID")
+            }
 
-/*
-
-                    playListItems.forEach {
-                        val part = "contentDetails"
-                        val key = BuildConfig.API_KEY
-                        val id = it.snippet.resourceId.videoId
-                        val response = apiService.getVideos(id, part, key)
-                        var contentDetails = ContentDetails(id, "00:05") // Default values
-                        if (response.isSuccessful) {
-                            val responseBody = response.body()
-                            if (responseBody != null) {
-                                _playListItems = responseBody.items
-
-                                if (!_playListItems.isEmpty()) {
-                                    val durationStr = _playListItems[0].contentDetails.duration
-                                    var duration: String = "00:05"
-                                    if (durationStr.length == 7)
-                                        duration = "0" + durationStr.substring(
-                                            2,
-                                            3
-                                        ) + ":" + durationStr.substring(4, 6)
-                                    else if (durationStr.length == 8)
-                                        duration =
-                                            durationStr.substring(
-                                                2,
-                                                4
-                                            ) + ":" + durationStr.substring(
-                                                5,
-                                                7
-                                            )
-                                    contentDetails = ContentDetails(
-                                        duration = duration,
-                                        videoId = id
-                                    )
-                                }
-                            }
-                        }
-                        contentDetailsList += contentDetails
-                        Log.d("MyApp", "Fetched ContentDetails successfully.")
-                    }
-                } else {
-                    // Handle API error here
-                    Log.d("MyApp", "Failed to retrieve PlaylistItem!")
-                }
+            Button(
+                onClick = {
+                    // Increment the key to trigger recomposition
+                    // apiCallKey++
+                    onEvent(VideoEvent.SetPlaylistIdText(""))
+                    playlistIdText = ""
+                },
+                modifier = Modifier
+                    .padding(5.dp)
+            ) {
+                Text("Clear ID")
             }
         }
-*/
+
         LazyColumn(
             contentPadding = PaddingValues(16.dp),
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         )
         {
-            var duration = ""
             items(state.playlistItems) { item ->
-                state.contentDetailsList.forEach {
-                    if (it.videoId == item.snippet.resourceId.videoId)
-                        duration = it.duration
-                }
-                ItemCard(item, duration, state, onEvent = onEvent)
+                ItemCard(item, state, onEvent = onEvent)
             }
 
             item { Row(modifier = Modifier.height(120.dp)) {} }
@@ -154,7 +119,6 @@ fun HomeScreen(
 @Composable
 fun ItemCard(
     item: Item,
-    duration: String,
     state: VideoState,
     onEvent: (VideoEvent) -> Unit
 ) {
@@ -178,7 +142,7 @@ fun ItemCard(
                     verticalAlignment = Alignment.CenterVertically
                 )
                 {
-                    Text(" ${item.snippet.position} - ${duration} ${item.snippet.title}")
+                    Text(" ${item.snippet.position} - ${item.contentDetails.duration} ${item.snippet.title}")
                 }
                 IconButton(onClick = {
                     if (isFound)
@@ -188,7 +152,7 @@ fun ItemCard(
                             VideoEvent.SetVideo(
                                 item.snippet.resourceId.videoId,
                                 item.snippet.title,
-                                duration
+                                item.contentDetails.duration
                             )
                         )
                         onEvent(VideoEvent.SaveVideo)
