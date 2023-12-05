@@ -1,7 +1,10 @@
-package com.example.personalizedmusicapp.model
+package com.example.personalizedmusicapp.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.personalizedmusicapp.BuildConfig
+import com.example.personalizedmusicapp.data.Item
+import com.example.personalizedmusicapp.retrofit.Repo
 import com.example.personalizedmusicapp.room.Video
 import com.example.personalizedmusicapp.room.VideoDao
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,22 +13,45 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
+// A class represents a viewModel for video
 class VideoViewModel (private val dao: VideoDao): ViewModel() {
 
-
-    private val _state = MutableStateFlow(VideoState())
+    private var _state = MutableStateFlow(VideoState())
     private val _videos = dao.getVideos()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+    private var _playlistItems = MutableStateFlow<List<Item>>(emptyList())
 
-    val state = combine(_state, _videos) { state, videos ->
+    val state = combine(_state, _videos, _playlistItems) { state, videos, playlistItems ->
         state.copy(
-            videos= videos
+            videos= videos,
+            playlistItems = playlistItems,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), VideoState())
 
+    private val repo : Repo = Repo()
+
+    fun updatePlaylistItems(playlistId: String){
+        viewModelScope.launch{
+            val part = "snippet"
+            val maxResults = "50"
+            val key = BuildConfig.API_KEY
+            _playlistItems.value  = repo.getPlaylistItems(part, maxResults, playlistId, key)
+        }
+    }
+
     fun onEvent(event: VideoEvent) {
         when(event) {
+
+            is VideoEvent.UpdatePlaylistItems ->{
+                updatePlaylistItems(event.playlistId)
+            }
+
+            is VideoEvent.SetPlaylistIdText ->{
+                _state.update {it.copy(
+                    playlistIdText = event.playlistIdText
+                )}
+            }
+
             is VideoEvent.DeleteVideo -> {
                 viewModelScope.launch {
                     dao.deleteVideo(event.video)

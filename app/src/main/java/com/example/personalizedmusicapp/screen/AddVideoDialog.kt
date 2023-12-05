@@ -8,15 +8,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.personalizedmusicapp.data.Item
-import com.example.personalizedmusicapp.model.VideoEvent
-import com.example.personalizedmusicapp.model.VideoState
+import com.example.personalizedmusicapp.viewModel.VideoEvent
+import com.example.personalizedmusicapp.viewModel.VideoState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

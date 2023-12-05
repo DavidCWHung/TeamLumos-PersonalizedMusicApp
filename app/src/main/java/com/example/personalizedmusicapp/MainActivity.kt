@@ -3,6 +3,7 @@ package com.example.personalizedmusicapp
 import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -25,6 +26,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -38,27 +40,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
-import com.example.personalizedmusicapp.data.PlayListItemsResponse
-import com.example.personalizedmusicapp.model.VideoViewModel
+import com.example.personalizedmusicapp.viewModel.VideoViewModel
 import com.example.personalizedmusicapp.room.VideoDatabase
 import com.example.personalizedmusicapp.screen.FavouritesScreen
 import com.example.personalizedmusicapp.screen.HomeScreen
 import com.example.personalizedmusicapp.screen.PlayerScreen
 import com.example.personalizedmusicapp.ui.theme.PersonalizedMusicAppTheme
-import retrofit2.Response
-import retrofit2.http.GET
-import retrofit2.http.Query
-
-interface ApiService {
-    @GET("playlistItems")
-    suspend fun getPlaylistItems(
-        @Query("part") part: String,
-        @Query("maxResults") maxResults: String,
-        @Query("playlistId") playlistId: String,
-        @Query("key") key: String
-    ): Response<PlayListItemsResponse>
-}
-
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
 
@@ -69,6 +58,14 @@ class MainActivity : ComponentActivity() {
             "videos.db"
         ).build()
     }
+
+    private val retrofit by lazy {
+        Retrofit.Builder()
+        .baseUrl("https://www.googleapis.com/youtube/v3/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+    }
+
     private val viewModel by viewModels<VideoViewModel>(
         factoryProducer = {
             object : ViewModelProvider.Factory {
@@ -91,6 +88,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
+
                     val state by viewModel.state.collectAsState()
 
                     Scaffold(

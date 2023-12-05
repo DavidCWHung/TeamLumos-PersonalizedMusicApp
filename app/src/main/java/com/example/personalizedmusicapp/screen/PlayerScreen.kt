@@ -38,8 +38,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.personalizedmusicapp.YoutubePlayer
-import com.example.personalizedmusicapp.model.VideoEvent
-import com.example.personalizedmusicapp.model.VideoState
+import com.example.personalizedmusicapp.viewModel.VideoEvent
+import com.example.personalizedmusicapp.viewModel.VideoState
 import java.time.LocalTime
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -47,17 +47,18 @@ import java.time.LocalTime
 fun PlayerScreen(
     state: VideoState,
     onEvent: (VideoEvent) -> Unit) {
-
-    if (!state.videos.isEmpty()){
-        ScreenWithVideoList(state, onEvent)
+    if (state.videos.isNotEmpty()){
+        // Render when the favourites list is not empty
+        ScreenWithFavList(state, onEvent)
     } else {
+        // Render when the favourites list is empty
         Column (
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Your favourite list is empty.",
+                text = "Your favourites list is empty.",
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 28.sp
             )
@@ -72,16 +73,14 @@ fun myPlayer(idx: Int, state: VideoState){
             .fillMaxWidth()
             .padding(5.dp)
     ){
-        if (idx != -1) {
-            key(state.videos[idx].youtubeId) {
+            if (state.videos.isNotEmpty())
                 YoutubePlayer(youtubeVideoId = state.videos[idx].youtubeId)
-            }
-        }
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ScreenWithVideoList(state: VideoState, onEvent: (VideoEvent) -> Unit)
+fun ScreenWithFavList(state: VideoState, onEvent: (VideoEvent) -> Unit)
 {
     // The index of the current video
     var idx by remember {
@@ -117,7 +116,13 @@ fun ScreenWithVideoList(state: VideoState, onEvent: (VideoEvent) -> Unit)
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        myPlayer(idx = idx, state = state)
+        // If the player is playing the last video and the video is removed from the list,
+        // this will limit the index to the updated upper value to avoid crash.
+        if (idx > state.videos.size - 1)
+            idx = state.videos.size - 1
+        key(idx) {
+            myPlayer(idx = idx, state = state)
+        }
 
         // Refreshes the counter if check is true.
         if (check) {
@@ -152,7 +157,7 @@ fun ScreenWithVideoList(state: VideoState, onEvent: (VideoEvent) -> Unit)
             val minStr = String.format("%02d", counterMin)
             val secStr = String.format("%02d", counterSec)
             Text(state.videos[idx].title)
-            Text("${minStr}:$secStr | ${idx + 1} / ${state.videos.count()}")
+            Text("$minStr:$secStr | ${idx + 1} / ${state.videos.count()}")
         }
 
         Row(
