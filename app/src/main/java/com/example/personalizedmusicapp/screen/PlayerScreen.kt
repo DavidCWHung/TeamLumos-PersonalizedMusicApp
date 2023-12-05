@@ -38,8 +38,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.personalizedmusicapp.YoutubePlayer
-import com.example.personalizedmusicapp.model.VideoEvent
-import com.example.personalizedmusicapp.model.VideoState
+import com.example.personalizedmusicapp.viewModel.VideoEvent
+import com.example.personalizedmusicapp.viewModel.VideoState
 import java.time.LocalTime
 
 @RequiresApi(Build.VERSION_CODES.O)

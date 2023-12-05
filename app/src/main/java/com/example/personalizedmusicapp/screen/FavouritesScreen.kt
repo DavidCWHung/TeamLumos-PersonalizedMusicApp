@@ -1,7 +1,6 @@
 package com.example.personalizedmusicapp.screen
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,11 +26,9 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.personalizedmusicapp.YoutubePlayer
-import com.example.personalizedmusicapp.data.Item
-import com.example.personalizedmusicapp.model.VideoEvent
-import com.example.personalizedmusicapp.model.VideoState
+import com.example.personalizedmusicapp.viewModel.VideoEvent
+import com.example.personalizedmusicapp.viewModel.VideoState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

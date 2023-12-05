@@ -37,33 +37,13 @@ import com.example.personalizedmusicapp.BuildConfig
 import com.example.personalizedmusicapp.YoutubePlayer
 import com.example.personalizedmusicapp.data.ContentDetails
 import com.example.personalizedmusicapp.data.Item
-import com.example.personalizedmusicapp.data.PlayListItemsResponse
-import com.example.personalizedmusicapp.model.VideoEvent
-import com.example.personalizedmusicapp.model.VideoState
+import com.example.personalizedmusicapp.viewModel.VideoEvent
+import com.example.personalizedmusicapp.viewModel.VideoState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
-import retrofit2.http.Query
 
-interface ApiService {
-    @GET("playlistItems")
-    suspend fun getPlaylistItems(
-        @Query("part") part: String,
-        @Query("maxResults") maxResults: String,
-        @Query("playlistId") playlistId: String,
-        @Query("key") key: String
-    ): Response<PlayListItemsResponse>
-
-    @GET("videos")
-    suspend fun getVideos(
-        @Query("id") id: String,
-        @Query("part") part: String,
-        @Query("key") key: String
-    ): Response<PlayListItemsResponse>
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,13 +52,11 @@ fun HomeScreen(
     onEvent: (VideoEvent) -> Unit
 ) {
 
-    var playListItems by remember { mutableStateOf(emptyList<Item>()) }
-    var _playListItems by remember { mutableStateOf(emptyList<Item>()) }
-    var contentDetailsList by remember { mutableStateOf(emptyList<ContentDetails>()) }
+
     var playlistIdText by remember { mutableStateOf("") }
     // Key to trigger recomposition
     var apiCallKey by remember { mutableStateOf(0) }
-    val coroutineScope = rememberCoroutineScope()
+
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -106,30 +84,7 @@ fun HomeScreen(
             Text("Fetch Playlist")
         }
 
-        LaunchedEffect(apiCallKey) {
-            val retrofit = Retrofit.Builder()
-                .baseUrl("https://www.googleapis.com/youtube/v3/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-
-            val apiService = retrofit.create(ApiService::class.java)
-
-            val part = "snippet"
-            val maxResults = "50"
-            val key = BuildConfig.API_KEY
-
-            // Use the updated playlistIdText value for API call
-            val playlistId = playlistIdText
-
-            coroutineScope.launch(Dispatchers.IO) {
-                val response = apiService.getPlaylistItems(part, maxResults, playlistId, key)
-
-                if (response.isSuccessful) {
-                    val responseBody = response.body()
-                    if (responseBody != null) {
-                        playListItems = responseBody.items
-                    }
-                    Log.d("MyApp", "Fetched PlaylistItems successfully.")
+/*
 
                     playListItems.forEach {
                         val part = "contentDetails"
@@ -175,7 +130,7 @@ fun HomeScreen(
                 }
             }
         }
-
+*/
         LazyColumn(
             contentPadding = PaddingValues(16.dp),
             modifier = Modifier.fillMaxSize(),
@@ -183,8 +138,8 @@ fun HomeScreen(
         )
         {
             var duration = ""
-            items(playListItems) { item ->
-                contentDetailsList.forEach {
+            items(state.playlistItems) { item ->
+                state.contentDetailsList.forEach {
                     if (it.videoId == item.snippet.resourceId.videoId)
                         duration = it.duration
                 }
@@ -192,7 +147,7 @@ fun HomeScreen(
             }
 
             item { Row(modifier = Modifier.height(120.dp)) {} }
-        }
+       }
     }
 }
 
