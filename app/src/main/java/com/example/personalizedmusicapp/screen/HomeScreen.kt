@@ -142,7 +142,7 @@ fun ItemCard(
                     verticalAlignment = Alignment.CenterVertically
                 )
                 {
-                    Text(" ${item.snippet.position} - ${item.contentDetails.duration} ${item.snippet.title}")
+                    Text(" ${item.snippet.position.toInt() + 1} - ${item.contentDetails.duration} ${item.snippet.title}")
                 }
                 IconButton(onClick = {
                     if (isFound)
