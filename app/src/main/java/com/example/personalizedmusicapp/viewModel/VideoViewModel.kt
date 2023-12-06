@@ -32,10 +32,12 @@ class VideoViewModel (private val dao: VideoDao): ViewModel() {
 
     fun updatePlaylistItems(playlistId: String){
         viewModelScope.launch{
+            _state.value = _state.value.copy(isLoading = true)
             val part = "snippet"
             val maxResults = "50"
             val key = BuildConfig.API_KEY
             _playlistItems.value  = repo.getPlaylistItems(part, maxResults, playlistId, key)
+            _state.value = _state.value.copy(isLoading = false)
         }
     }
 

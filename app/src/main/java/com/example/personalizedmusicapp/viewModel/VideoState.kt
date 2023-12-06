@@ -15,4 +15,6 @@ data class VideoState(
     var playlistItems : List<Item> = emptyList(),
     // Store a complete video list of data fetched from Room
     val videos: List<Video> = emptyList(),
+    // Store a boolean value to indicate if it is loading API data
+    val isLoading: Boolean = false
 )

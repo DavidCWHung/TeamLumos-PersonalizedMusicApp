@@ -1,6 +1,7 @@
 package com.example.personalizedmusicapp.screen
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -8,12 +9,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -98,6 +101,15 @@ fun HomeScreen(
                     .padding(5.dp)
             ) {
                 Text("Clear ID")
+            }
+        }
+
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Show a spinning wheel
+                CircularProgressIndicator(modifier = Modifier.size(50.dp).align(Alignment.Center))
             }
         }
 
