@@ -63,7 +63,7 @@ fun HomeScreen(
         )
         Row(
             horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(5.dp)
+            modifier = Modifier.padding(5.dp).fillMaxWidth()
         ){
             Button(
                 onClick = {

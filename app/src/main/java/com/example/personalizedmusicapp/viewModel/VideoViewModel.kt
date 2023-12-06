@@ -66,7 +66,7 @@ class VideoViewModel (private val dao: VideoDao): ViewModel() {
                 }
             }
 
-            is VideoEvent.HideDialog -> {
+            VideoEvent.HideDialog -> {
                 _state.update { it.copy(
                     isAddingVideo = false
                 ) }
